@@ -26,7 +26,7 @@ impl Sandbox for SudokuView {
         let mut sudoku = Sudoku::default();
         //dbg!(sudoku.row(5).collect::<Vec<_>>());
         //dbg!(sudoku.column(5).collect::<Vec<_>>());
-        sudoku.solve().fix();
+        sudoku.solve().fix().prune().solve();
         //dbg!(sudoku.subregion(5).collect::<Vec<_>>());
         SudokuView {
             sudoku: sudoku,

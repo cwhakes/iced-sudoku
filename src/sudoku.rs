@@ -1,6 +1,7 @@
 use std::ops;
 use std::sync::atomic::{AtomicU8, Ordering};
 
+use rand::prelude::*;
 use rand::{thread_rng, Rng};
 
 pub const SUBREGION_COLUMNS: usize = 3;
@@ -101,7 +102,7 @@ impl Sudoku {
         sudoku.iter_mut().for_each(|cell| cell.set(0));
         let stack = sudoku.make_solve_stack();
         // If sudoku is complete, there is only 1 solution
-        if 0 == dbg!(stack.len()) {return true;}
+        if 0 == stack.len() {return true;}
 
         let cursor = sudoku.solve_inner(&stack, 0);
         // If this can't solve, there are no unique solutions
@@ -158,6 +159,29 @@ impl Sudoku {
             let num = cell.read();
             if num != 0 {
                 *cell = Cell::Fixed(num);
+            }
+        }
+
+        self
+    }
+
+    pub fn prune(&mut self) -> &mut Self {
+        assert!(self.has_unique_solution());
+
+        let mut indices = self.iter().enumerate().filter_map(|(index, cell)| {
+            match cell {
+                Cell::Fixed(_) => Some(index),
+                Cell::Variable(_) => None,
+            }
+        }).collect::<Vec<_>>();
+
+        indices.shuffle(&mut thread_rng());
+
+        for index in indices {
+            let num = self[index].read();
+            self[index] = Cell::Variable(AtomicU8::new(0));
+            if !self.has_unique_solution() {
+                self[index] = Cell::Fixed(num);
             }
         }
 
@@ -241,5 +265,7 @@ mod test {
         sudoku.solve();
         sudoku.fix();
         assert!(sudoku.has_unique_solution());
+        sudoku.prune();
+        assert!(sudoku.has_unique_solution())
     }
 }
