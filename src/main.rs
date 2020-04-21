@@ -23,11 +23,9 @@ impl Sandbox for SudokuView {
     type Message = Message;
 
     fn new() -> SudokuView {
-        let mut sudoku = Sudoku::default();
-        //dbg!(sudoku.row(5).collect::<Vec<_>>());
-        //dbg!(sudoku.column(5).collect::<Vec<_>>());
-        sudoku.solve().fix().prune().solve();
-        //dbg!(sudoku.subregion(5).collect::<Vec<_>>());
+        let mut sudoku = Sudoku::generate();
+        //sudoku.solve().fix().prune().solve();
+        sudoku.fix().prune().solve();
         SudokuView {
             sudoku: sudoku,
             states: vec![State::new(); sudoku::SUDOKU_AREA],
@@ -63,7 +61,6 @@ impl Sandbox for SudokuView {
                     self.sudoku[cell_index].set(val);
                 }
             }
-            _ => {}
         }
     }
 }
