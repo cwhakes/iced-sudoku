@@ -1,8 +1,12 @@
-use iced::{Element, Sandbox, Text};
+mod sudoku;
+
+use sudoku::Sudoku;
+
+use iced::{Column, Element, Row, Sandbox, Text};
 
 #[derive(Default)]
-struct HelloWorld {
-    text: &'static str,
+struct SudokuView {
+    sudoku: Sudoku,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -10,12 +14,12 @@ pub enum Message {
     Placeholder,
 }
 
-impl Sandbox for HelloWorld {
+impl Sandbox for SudokuView {
     type Message = Message;
 
-    fn new() -> HelloWorld {
-        HelloWorld {
-            text: "Hello, world!",
+    fn new() -> SudokuView {
+        SudokuView {
+            sudoku: Sudoku::default(),
         }
     }
 
@@ -24,7 +28,18 @@ impl Sandbox for HelloWorld {
     }
 
     fn view(&mut self) -> Element<Message> {
-        Text::new(self.text).size(50).into()
+        //Text::new(self.text).size(50).into()
+        let mut grid = Column::new();
+        let mut iter = self.sudoku.iter();
+        for _ in 0..sudoku::ROWS {
+            let mut row = Row::new();
+            for _ in 0..sudoku::COLUMS {
+                let num = iter.next().unwrap().read();
+                row = row.push(Text::new(num.to_string()));
+            }
+            grid = grid.push(row);
+        };
+        grid.into()
     }
 
     fn update(&mut self, message: Message) {
@@ -35,5 +50,5 @@ impl Sandbox for HelloWorld {
 }
 
 fn main() {
-    HelloWorld::run(Default::default());
+    SudokuView::run(Default::default());
 }
