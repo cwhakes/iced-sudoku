@@ -107,6 +107,7 @@ impl Sudoku {
 
     pub fn validate_cell(&self, index: (usize, usize)) -> bool {
         assert!(index.0 < SUDOKU_MAX && index.1 < SUDOKU_MAX);
+        0 == self[index].read() ||
         is_valid_subregion(self.row(index.0)) &&
         is_valid_subregion(self.column(index.1)) &&
         is_valid_subregion(self.subregion(get_subregion(index)))
@@ -182,7 +183,7 @@ impl Sudoku {
                 }
             }
         }
-        dbg!(cursor)
+        cursor
     }
 
     pub fn fix(&mut self) -> &mut Self {
@@ -196,7 +197,9 @@ impl Sudoku {
         self
     }
 
-    pub fn prune(&mut self) -> &mut Self {
+    /// Removes fixed cells from a sudoku while ensuring a unique solution
+    /// Removes up to `num_to_remove` cells. Stops early if it runs out of cells it can remove.
+    pub fn prune(&mut self, num_to_remove: usize) -> &mut Self {
         assert!(self.has_unique_solution());
 
         let mut indices = self.iter().enumerate().filter_map(|(index, cell)| {
@@ -208,11 +211,16 @@ impl Sudoku {
 
         indices.shuffle(&mut thread_rng());
 
+        let mut num_removed = 0;
         for index in indices {
-            let num = self[index].read();
-            self[index] = Cell::Variable(AtomicU8::new(0));
-            if !self.has_unique_solution() {
-                self[index] = Cell::Fixed(num);
+            if num_removed < num_to_remove {
+                let num = self[index].read();
+                self[index] = Cell::Variable(AtomicU8::new(0));
+                if self.has_unique_solution() {
+                    num_removed +=1;
+                } else {
+                    self[index] = Cell::Fixed(num);
+                }
             }
         }
 
@@ -296,7 +304,7 @@ mod test {
         sudoku.solve();
         sudoku.fix();
         assert!(sudoku.has_unique_solution());
-        sudoku.prune();
+        sudoku.prune(50);
         assert!(sudoku.has_unique_solution())
     }
 }
