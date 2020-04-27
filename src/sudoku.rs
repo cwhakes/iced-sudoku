@@ -4,24 +4,17 @@ use std::sync::atomic::{AtomicU8, Ordering};
 use rand::prelude::*;
 use rand::thread_rng;
 
-pub const SUBREGION_COLUMNS: usize = 3;
-pub const SUBREGION_ROWS: usize = 3;
-pub const SUDOKU_MAX: usize = SUBREGION_COLUMNS * SUBREGION_ROWS;
-pub const SUDOKU_MAX_U8: u8 = SUDOKU_MAX as u8;
-pub const SUDOKU_AREA: usize = SUDOKU_MAX * SUDOKU_MAX;
-
-#[derive(Clone, Debug, Default)]
-pub struct Sudoku(pub [[Cell; SUDOKU_MAX]; SUDOKU_MAX]);
+#[derive(Clone, Debug)]
+pub struct Sudoku {
+    subregion_columns: u8,
+    subregion_rows: u8,
+    grid: Vec<Vec<Cell>>,
+}
 
 #[derive(Debug)]
 pub enum Cell {
     Fixed(u8),
     Variable(AtomicU8),
-}
-
-fn get_subregion(index: (usize, usize)) -> usize {
-    assert!(index.0 < SUDOKU_MAX && index.1 < SUDOKU_MAX);
-    SUBREGION_ROWS * (index.0/SUBREGION_ROWS) + (index.1 / SUBREGION_COLUMNS)
 }
 
 pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item=&'a Cell>) -> bool {
@@ -30,12 +23,23 @@ pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item=&'a Cell>) -> 
 }
 
 impl Sudoku {
-    pub fn generate() -> Sudoku {
+    fn new(subregion_rows: u8, subregion_columns: u8) -> Sudoku {
+        let length = subregion_rows as usize * subregion_columns as usize;
+        assert!(length <= u8::MAX as usize);
+        let grid = vec![vec![Cell::default(); length]; length];
+        Sudoku {
+            subregion_columns,
+            subregion_rows,
+            grid
+        }
+    }
+
+    pub fn generate(subregion_rows: u8, subregion_columns: u8) -> Sudoku {
         // Create empty Sudoku
-        let sudoku = Sudoku::default();
+        let sudoku = Sudoku::new(subregion_rows, subregion_columns);
         // Create a vec of all possible to be filled
-        let mut numbers = (1..(SUDOKU_MAX_U8+1)).collect::<Vec<u8>>();
-        for (i, row) in sudoku.0.iter().enumerate() {
+        let mut numbers = (1..(sudoku.length_u8()+1)).collect::<Vec<u8>>();
+        for (i, row) in sudoku.grid.iter().enumerate() {
             // Shuffle the numbers once per row
             numbers.shuffle(&mut thread_rng());
             'cells: for (j, cell) in row.iter().enumerate() {
@@ -56,12 +60,32 @@ impl Sudoku {
         sudoku
     }
 
+    pub fn subregion_columns(&self) -> usize {
+        self.subregion_columns as usize
+    }
+
+    pub fn subregion_rows(&self) -> usize {
+        self.subregion_rows as usize
+    }
+
+    pub fn length(&self) -> usize {
+        self.length_u8()  as usize
+    }
+
+    pub fn length_u8(&self) -> u8 {
+        self.subregion_columns * self.subregion_rows 
+    }
+
+    pub fn area(&self) -> usize {
+        self.length().pow(2)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item=&'_ Cell> {
-        self.0.iter().flatten()
+        self.grid.iter().flatten()
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut Cell> {
-        self.0.iter_mut().flatten()
+        self.grid.iter_mut().flatten()
     }
 
     pub fn _fixeds_iter(&self) ->  impl Iterator<Item=&'_ Cell> {
@@ -83,32 +107,37 @@ impl Sudoku {
     }
 
     pub fn row(&self, row: usize) -> impl Iterator<Item=&'_ Cell> {
-        assert!(row < SUDOKU_MAX);
-        self.0[row].iter()
+        assert!(row < self.length());
+        self.grid[row].iter()
     }
 
     pub fn column(&self, column: usize) -> impl Iterator<Item=&'_ Cell> {
-        assert!(column < SUDOKU_MAX);
-        self.0.iter().flat_map(move |row| row.iter().nth(column))
+        assert!(column < self.length());
+        self.grid.iter().flat_map(move |row| row.iter().nth(column))
+    }
+
+    fn get_subregion_index(&self, index: (usize, usize)) -> usize {
+        assert!(index.0 < self.length() && index.1 < self.length());
+        self.subregion_rows() * (index.0/self.subregion_rows()) + (index.1 / self.subregion_columns())
     }
 
     pub fn subregion(&self, subregion: usize) -> impl Iterator<Item=&'_ Cell> {
-        assert!(subregion < SUDOKU_MAX);
-        self.0.iter().skip(SUBREGION_ROWS * (subregion / SUBREGION_ROWS))
-            .take(SUBREGION_ROWS)
+        assert!(subregion < self.length());
+        self.grid.iter().skip(self.subregion_rows() * (subregion / self.subregion_rows()))
+            .take(self.subregion_rows())
             .flat_map(move |row| {
-                row.iter().skip(SUBREGION_COLUMNS * (subregion % SUBREGION_ROWS))
-                    .take(SUBREGION_COLUMNS)
+                row.iter().skip(self.subregion_columns() * (subregion % self.subregion_rows()))
+                    .take(self.subregion_columns())
             })
     }
 
     pub fn validate_cell(&self, index: (usize, usize)) -> bool {
-        assert!(index.0 < SUDOKU_MAX && index.1 < SUDOKU_MAX);
+        assert!(index.0 < self.length() && index.1 < self.length());
         let value = self[index].read();
         0 == value ||
         is_valid_subregion(value, self.row(index.0)) &&
         is_valid_subregion(value, self.column(index.1)) &&
-        is_valid_subregion(value, self.subregion(get_subregion(index)))
+        is_valid_subregion(value, self.subregion(self.get_subregion_index(index)))
     }
 
     /// Verifies that sudoku has *at least* one solution.
@@ -158,7 +187,7 @@ impl Sudoku {
     fn make_solve_stack(&self) -> Vec<((usize, usize), &AtomicU8)> {
         self.iter().enumerate().filter_map(|(index, cell)| {
             if let Cell::Variable(inner) = cell {
-                Some(((index / SUDOKU_MAX, index % SUDOKU_MAX), inner))
+                Some(((index / self.length(), index % self.length()), inner))
             } else {
                 None
             }
@@ -168,7 +197,7 @@ impl Sudoku {
     fn solve_inner(&self, stack: &[((usize, usize), &AtomicU8)], mut cursor: usize) -> usize {
         while cursor < stack.len() {
             let (index, cell) = stack[cursor];
-            if SUDOKU_MAX_U8 > cell.fetch_add(1, Ordering::Relaxed) {
+            if self.length_u8() > cell.fetch_add(1, Ordering::Relaxed) {
                 if self.validate_cell(index) {
                     cursor += 1;
                 }
@@ -241,19 +270,26 @@ impl Cell {
     }
 }
 
+impl Default for Sudoku {
+    fn default() -> Sudoku {
+        Sudoku::new(3, 3)
+    }
+}
+
 impl ops::Index<usize> for Sudoku {
     type Output = Cell;
 
     fn index(&self, idx: usize) -> &Self::Output {
-        assert!(idx < SUDOKU_MAX * SUDOKU_MAX);
-        &self.0[idx / SUDOKU_MAX][idx % SUDOKU_MAX]
+        assert!(idx < self.area());
+        &self.grid[idx / self.length()][idx % self.length()]
     }
 }
 
 impl ops::IndexMut<usize> for Sudoku {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-        assert!(idx < SUDOKU_AREA);
-        &mut self.0[idx / SUDOKU_MAX][idx % SUDOKU_MAX]
+        assert!(idx < self.area());
+        let length = self.length();
+        &mut self.grid[idx / length][idx % length]
     }
 }
 
@@ -261,15 +297,15 @@ impl ops::Index<(usize, usize)> for Sudoku {
     type Output = Cell;
 
     fn index(&self, (row, column): (usize, usize)) -> &Self::Output {
-        assert!(row < SUDOKU_MAX && column < SUDOKU_MAX);
-        &self.0[row][column]
+        assert!(row < self.length() && column < self.length());
+        &self.grid[row][column]
     }
 }
 
 impl ops::IndexMut<(usize, usize)> for Sudoku {
     fn index_mut(&mut self, (row, column): (usize, usize)) -> &mut Self::Output {
-        assert!(row < SUDOKU_MAX && column < SUDOKU_MAX);
-        &mut self.0[row][column]
+        assert!(row < self.length() && column < self.length());
+        &mut self.grid[row][column]
     }
 }
 

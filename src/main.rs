@@ -1,7 +1,7 @@
 mod style;
 mod sudoku;
 
-use sudoku::{Cell, Sudoku, SUBREGION_COLUMNS, SUBREGION_ROWS};
+use sudoku::{Cell, Sudoku};
 
 use iced::{Column, Container, Element, Length, Row, Sandbox, Text};
 use iced::text_input::{State, TextInput};
@@ -24,12 +24,13 @@ impl Sandbox for SudokuView {
     type Message = Message;
 
     fn new() -> SudokuView {
-        let mut sudoku = Sudoku::generate();
+        let mut sudoku = Sudoku::generate(3, 3);
         //sudoku.solve().fix().prune().solve();
         sudoku.fix().prune(50);
+        let state_len = sudoku.area();
         SudokuView {
             sudoku: sudoku,
-            states: vec![State::new(); sudoku::SUDOKU_AREA],
+            states: vec![State::new(); state_len],
         }
     }
 
@@ -38,18 +39,20 @@ impl Sandbox for SudokuView {
     }
 
     fn view(&mut self) -> Element<Message> {
+        let subregion_columns = self.sudoku.subregion_columns();
+        let subregion_rows = self.sudoku.subregion_rows();
         //Text::new(self.text).size(50).into()
         let mut grid = Column::new();
         let mut states = self.states.iter_mut();
-        for major_i in 0..SUBREGION_COLUMNS {
+        for major_i in 0..subregion_columns {
             let mut major_row = Row::new();
-            for major_j in 0..SUBREGION_ROWS {
+            for major_j in 0..subregion_rows {
                 let mut subregion = Column::new();
-                for minor_i in 0..SUBREGION_ROWS {
+                for minor_i in 0..subregion_rows {
                     let mut minor_row = Row::new();
-                    for minor_j in 0..SUBREGION_COLUMNS {
-                        let i = major_i * SUBREGION_ROWS + minor_i;
-                        let j = major_j * SUBREGION_COLUMNS + minor_j;
+                    for minor_j in 0..subregion_columns {
+                        let i = major_i * subregion_rows + minor_i;
+                        let j = major_j * subregion_columns + minor_j;
                         let state = states.next().unwrap();
                         let cell = &self.sudoku[(i, j)];
                         let is_valid = self.sudoku.validate_cell((i, j));
@@ -68,11 +71,14 @@ impl Sandbox for SudokuView {
     fn update(&mut self, message: Message) {
         match message {
             Message::ChangedCell{new_value, cell_index} => {
+                let max_value = self.sudoku.length_u8();
                 if new_value == "" {
                     self.sudoku[cell_index].set(0)
                 // Set the value if value successfully parses to u8 between 1 and 9
-                } else if let Ok(val @ 1..=sudoku::SUDOKU_MAX_U8) = new_value.parse() {
-                    self.sudoku[cell_index].set(val);
+                } else if let Ok(val) = new_value.parse() {
+                    if 1 <= val && val <= max_value {
+                        self.sudoku[cell_index].set(val);
+                    }
                 }
             }
         }
