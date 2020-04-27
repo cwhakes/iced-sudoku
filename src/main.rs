@@ -48,8 +48,8 @@ impl Sandbox for SudokuView {
                 for minor_i in 0..SUBREGION_ROWS {
                     let mut minor_row = Row::new();
                     for minor_j in 0..SUBREGION_COLUMNS {
-                        let i = major_i * SUBREGION_COLUMNS + minor_i;
-                        let j = major_j * SUBREGION_ROWS + minor_j;
+                        let i = major_i * SUBREGION_ROWS + minor_i;
+                        let j = major_j * SUBREGION_COLUMNS + minor_j;
                         let state = states.next().unwrap();
                         let cell = &self.sudoku[(i, j)];
                         let is_valid = self.sudoku.validate_cell((i, j));
@@ -62,21 +62,6 @@ impl Sandbox for SudokuView {
             }
             grid = grid.push(major_row);
         }
-
-        /*
-        let mut grid = Column::new();
-        let mut iter = self.sudoku.iter().zip(self.states.iter_mut()).enumerate();
-        for i in 0..sudoku::SUDOKU_MAX {
-            let mut row = Row::new();
-            for j in 0..sudoku::SUDOKU_MAX {
-                let (index, (cell, state)) = iter.next().unwrap();
-                let is_valid = self.sudoku.validate_cell((i, j));
-
-                row = row.push(element_from_cell(index, cell, state, is_valid));
-            }
-            grid = grid.push(row);
-        };
-        */
         grid.into()
     }
 
