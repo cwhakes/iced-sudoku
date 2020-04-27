@@ -24,12 +24,9 @@ fn get_subregion(index: (usize, usize)) -> usize {
     SUBREGION_ROWS * (index.0/SUBREGION_ROWS) + (index.1 / SUBREGION_COLUMNS)
 }
 
-pub fn is_valid_subregion<'a>(iter: impl Iterator<Item=&'a Cell>) -> bool {
-    let mut vec: Vec<_> = iter.map(|c| c.read()).filter(|i| *i != 0).collect();
-    vec.sort();
-    let len = vec.len();
-    vec.dedup();
-    len == vec.len()
+pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item=&'a Cell>) -> bool {
+    let count = iter.map(Cell::read).filter(|i| *i == value).count();
+    count <= 1
 }
 
 impl Sudoku {
@@ -107,10 +104,11 @@ impl Sudoku {
 
     pub fn validate_cell(&self, index: (usize, usize)) -> bool {
         assert!(index.0 < SUDOKU_MAX && index.1 < SUDOKU_MAX);
-        0 == self[index].read() ||
-        is_valid_subregion(self.row(index.0)) &&
-        is_valid_subregion(self.column(index.1)) &&
-        is_valid_subregion(self.subregion(get_subregion(index)))
+        let value = self[index].read();
+        0 == value ||
+        is_valid_subregion(value, self.row(index.0)) &&
+        is_valid_subregion(value, self.column(index.1)) &&
+        is_valid_subregion(value, self.subregion(get_subregion(index)))
     }
 
     /// Verifies that sudoku has *at least* one solution.
