@@ -24,7 +24,7 @@ impl Sandbox for SudokuView {
     type Message = Message;
 
     fn new() -> SudokuView {
-        let mut sudoku = Sudoku::generate(3, 3);
+        let mut sudoku = Sudoku::generate(1, 2);
         //sudoku.solve().fix().prune().solve();
         sudoku.fix().prune(50);
         let state_len = sudoku.area();

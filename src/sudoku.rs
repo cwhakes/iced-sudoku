@@ -88,7 +88,7 @@ impl Sudoku {
         self.grid.iter_mut().flatten()
     }
 
-    pub fn _fixeds_iter(&self) ->  impl Iterator<Item=&'_ Cell> {
+    pub fn fixeds_iter(&self) ->  impl Iterator<Item=&'_ Cell> {
         self.iter().filter(|cell| {
             match cell {
                 Cell::Fixed(_) => true,
@@ -97,7 +97,7 @@ impl Sudoku {
         })
     }
 
-    pub fn _variables_iter(&self) -> impl Iterator<Item=&'_ Cell> {
+    pub fn variables_iter(&self) -> impl Iterator<Item=&'_ Cell> {
         self.iter().filter(|cell| {
             match cell {
                 Cell::Fixed(_) => false,
@@ -340,5 +340,13 @@ mod test {
         assert!(sudoku.has_unique_solution());
         sudoku.prune(50);
         assert!(sudoku.has_unique_solution())
+    }
+
+    #[test]
+    fn tiny() {
+        let mut sudoku = Sudoku::generate(1, 2);
+        sudoku.fix().prune(50);
+        assert_eq!(1, sudoku.fixeds_iter().count());
+        assert_eq!(3, sudoku.variables_iter().count());
     }
 }
