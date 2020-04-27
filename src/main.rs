@@ -1,9 +1,10 @@
+mod style;
 mod sudoku;
 
-use sudoku::{Cell, Sudoku};
+use sudoku::{Cell, Sudoku, SUBREGION_COLUMNS, SUBREGION_ROWS};
 
-use iced::{Background, Color, Column, Container, Element, Length, Row, Sandbox, Text};
-use iced::text_input::{State, Style, StyleSheet, TextInput};
+use iced::{Column, Container, Element, Length, Row, Sandbox, Text};
+use iced::text_input::{State, TextInput};
 
 struct SudokuView {
     sudoku: Sudoku,
@@ -15,12 +16,8 @@ struct SudokuView {
 pub enum Message {
     ChangedCell{
         new_value: String,
-        cell_index: usize,
+        cell_index: (usize, usize),
     }
-}
-
-pub struct CellInputStyle {
-    cell_is_valid: bool,
 }
 
 impl Sandbox for SudokuView {
@@ -43,6 +40,31 @@ impl Sandbox for SudokuView {
     fn view(&mut self) -> Element<Message> {
         //Text::new(self.text).size(50).into()
         let mut grid = Column::new();
+        let mut states = self.states.iter_mut();
+        for major_i in 0..SUBREGION_COLUMNS {
+            let mut major_row = Row::new();
+            for major_j in 0..SUBREGION_ROWS {
+                let mut subregion = Column::new();
+                for minor_i in 0..SUBREGION_ROWS {
+                    let mut minor_row = Row::new();
+                    for minor_j in 0..SUBREGION_COLUMNS {
+                        let i = major_i * SUBREGION_COLUMNS + minor_i;
+                        let j = major_j * SUBREGION_ROWS + minor_j;
+                        let state = states.next().unwrap();
+                        let cell = &self.sudoku[(i, j)];
+                        let is_valid = self.sudoku.validate_cell((i, j));
+
+                        minor_row = minor_row.push(element_from_cell((i, j), cell, state, is_valid));
+                    }
+                    subregion = subregion.push(minor_row);
+                }
+                major_row = major_row.push(Container::new(subregion).style(style::SubregionBorder));
+            }
+            grid = grid.push(major_row);
+        }
+
+        /*
+        let mut grid = Column::new();
         let mut iter = self.sudoku.iter().zip(self.states.iter_mut()).enumerate();
         for i in 0..sudoku::SUDOKU_MAX {
             let mut row = Row::new();
@@ -54,6 +76,7 @@ impl Sandbox for SudokuView {
             }
             grid = grid.push(row);
         };
+        */
         grid.into()
     }
 
@@ -71,7 +94,7 @@ impl Sandbox for SudokuView {
     }
 }
 
-fn element_from_cell<'a>(index: usize, cell: &'a Cell, state: &'a mut State, is_valid: bool) -> Element<'a, Message> {
+fn element_from_cell<'a>(index: (usize, usize), cell: &'a Cell, state: &'a mut State, is_valid: bool) -> Element<'a, Message> {
     let inner: Element<_> = match cell {
         Cell::Fixed(inner) => Text::new(inner.to_string()).into(),
         Cell::Variable(_) => {
@@ -89,7 +112,7 @@ fn element_from_cell<'a>(index: usize, cell: &'a Cell, state: &'a mut State, is_
                 },
             );
             if !is_valid {
-                text = text.style(CellInputStyle::new(is_valid));
+                text = text.style(style::CellInput::new(is_valid));
             }
             text.into()
         }
@@ -97,50 +120,12 @@ fn element_from_cell<'a>(index: usize, cell: &'a Cell, state: &'a mut State, is_
 
     Container::new(inner)
         .width(Length::Units(32))
+        .center_x()
         .height(Length::Units(32))
+        .center_y()
+        .style(style::CellBorder)
         .into()
 }
-
-impl CellInputStyle {
-    fn new(cell_is_valid: bool) -> CellInputStyle {
-        CellInputStyle {
-            cell_is_valid
-        }
-    }
-
-    fn style(&self) -> Style {
-        match self.cell_is_valid {
-            true => GOOD_INPUT,
-            false => BAD_INPUT,
-        }
-    }
-}
-
-impl StyleSheet for CellInputStyle {
-    fn active(&self) -> Style { self.style() }
-    fn focused(&self) -> Style { self.style() }
-    fn placeholder_color(&self) -> Color { Color::WHITE }
-    fn value_color(&self) -> Color { Color::BLACK }
-    fn selection_color(&self) -> Color { Color::from_rgb8(200, 200, 255) }
-}
-
-const GOOD_INPUT: Style = Style {
-    background: Background::Color(
-        Color::WHITE,
-    ),
-    border_radius: 0,
-    border_width: 2,
-    border_color: Color::BLACK,
-};
-
-const BAD_INPUT: Style = Style {
-    background: Background::Color(
-        Color { r: 1.0, g: 0.75, b: 0.75, a: 1.0 },
-    ),
-    border_radius: 0,
-    border_width: 2,
-    border_color: Color::BLACK,
-};
 
 fn main() {
     SudokuView::run(Default::default());
