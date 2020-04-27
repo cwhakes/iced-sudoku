@@ -99,7 +99,7 @@ fn element_from_cell<'a>(index: (usize, usize), cell: &'a Cell, state: &'a mut S
             if !is_valid {
                 text = text.style(style::CellInput::new(is_valid));
             }
-            text.into()
+            text.width(Length::Units(20)).into()
         }
     };
 
