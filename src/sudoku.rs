@@ -3,8 +3,10 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use rand::prelude::*;
 use rand::thread_rng;
+use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Sudoku {
     subregion_columns: u8,
     subregion_rows: u8,
@@ -12,6 +14,7 @@ pub struct Sudoku {
 }
 
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub enum Cell {
     Fixed(u8),
     Variable(AtomicU8),

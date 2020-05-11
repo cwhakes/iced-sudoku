@@ -78,6 +78,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b41b7ea54a0c9d92199de89e20e58d49f02f8e699814ef3fdf266f6f748d15c7"
 
 [[package]]
+name = "bincode"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5753e2a71534719bf3f4e57006c3a4f0d2c672a4b676eec84161f763eca87dbf"
+dependencies = [
+ "byteorder",
+ "serde",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1582,6 +1592,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
+name = "serde"
+version = "1.0.110"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99e7b308464d16b56eba9964e4972a3eee817760ab60d88c3f86e1fecb08204c"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.110"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "818fbf6bfa9a42d3bfcaca148547aa00c7b915bec71d1757aa2d44ca68771984"
+dependencies = [
+ "proc-macro2 1.0.10",
+ "quote 1.0.3",
+ "syn 1.0.17",
+]
+
+[[package]]
 name = "servo-fontconfig"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1702,8 +1732,11 @@ dependencies = [
 name = "sudoku"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "iced",
  "rand",
+ "serde",
+ "tinyfiledialogs",
 ]
 
 [[package]]
@@ -1744,6 +1777,16 @@ dependencies = [
  "quote 0.6.13",
  "syn 0.15.44",
  "unicode-xid 0.1.0",
+]
+
+[[package]]
+name = "tinyfiledialogs"
+version = "3.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "848eb50d6d21430349d82418c2244f611b1ad3e1c52c675320338b3102d06554"
+dependencies = [
+ "cc",
+ "libc",
 ]
 
 [[package]]

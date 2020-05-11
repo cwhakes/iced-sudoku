@@ -6,7 +6,7 @@ use iced::{Column, Container, Element, Length, Row, Text};
 use iced::text_input::{State, TextInput};
 
 pub struct SudokuView {
-    sudoku: Sudoku,
+    pub sudoku: Sudoku,
     states: Vec<State>,
 }
 
@@ -65,6 +65,7 @@ impl SudokuView {
                     }
                 }
             }
+            _ => {}
         }
     }
 }
