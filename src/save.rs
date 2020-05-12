@@ -48,14 +48,19 @@ impl SaveButtons {
         }
     }
 
+    pub fn load_from_path(&mut self, path: String) -> Option<Vec<u8>> {
+        let file_contents = fs::read(&path).ok();
+        self.file_path = Some(path);
+        file_contents
+    }
+
     pub fn load(&mut self) -> Option<Vec<u8>> {
-        self.file_path = open_file_dialog(
+        if let Some(file_path) = open_file_dialog(
             "Sudoku! Load File",
             "",
             Some((&["*.sudoku"], "Sudoku! Files")),
-        );
-        if let Some(save_file_path) = &self.file_path {
-            fs::read(save_file_path).ok()
-        } else { None }
+        ) {
+            self.load_from_path(file_path)
+        } else {None}
     }
 }

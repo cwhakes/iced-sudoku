@@ -44,10 +44,9 @@ impl Sandbox for SudokuApp {
             game: SudokuView::new(),
             save_buttons: SaveButtons::new(),
         };
-        let path = std::env::args().skip(1).next();
-        if let Some(path) = path {
-            let save_file = std::fs::read(path).unwrap();
-            app.game.sudoku = bincode::deserialize(&save_file).unwrap();
+        if let Some(path) = std::env::args().skip(1).next() {
+            let save_file = app.save_buttons.load_from_path(path).unwrap();
+            app.game.sudoku = bincode::deserialize(&save_file).unwrap(); 
         }
         app
     }
