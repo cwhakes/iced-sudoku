@@ -5,8 +5,8 @@ const GOOD_INPUT: text_input::Style = text_input::Style {
     background: Background::Color(
         Color::WHITE,
     ),
-    border_radius: 0,
-    border_width: 0,
+    border_radius: 0.0,
+    border_width: 0.0,
     border_color: Color::BLACK,
 };
 
@@ -14,8 +14,8 @@ const BAD_INPUT: text_input::Style = text_input::Style {
     background: Background::Color(
         Color { r: 1.0, g: 0.75, b: 0.75, a: 1.0 },
     ),
-    border_radius: 0,
-    border_width: 0,
+    border_radius: 0.0,
+    border_width: 0.0,
     border_color: Color::BLACK,
 };
 
@@ -54,8 +54,8 @@ impl container::StyleSheet for CellBorder {
         container::Style {
             text_color: None,
             background: None,
-            border_radius: 0,
-            border_width: 1,
+            border_radius: 0.0,
+            border_width: 1.0,
             border_color: Color::BLACK,
         }
     }
@@ -66,8 +66,8 @@ impl container::StyleSheet for SubregionBorder {
         container::Style {
             text_color: None,
             background: None,
-            border_radius: 0,
-            border_width: 2,
+            border_radius: 0.0,
+            border_width: 2.0,
             border_color: Color::BLACK,
         }
     }

@@ -92,5 +92,5 @@ impl Sandbox for SudokuApp {
 }
 
 fn main() {
-    SudokuApp::run(Default::default());
+    SudokuApp::run(Default::default()).unwrap();
 }
