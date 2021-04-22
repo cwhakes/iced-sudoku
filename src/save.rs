@@ -1,9 +1,9 @@
-use crate::{Message, FileOp};
+use crate::{FileOp, Message};
 
 use std::fs;
 
-use iced::{Element, Row, Text};
 use iced::button::{Button, State};
+use iced::{Element, Row, Text};
 use tinyfiledialogs::{open_file_dialog, save_file_dialog_with_filter};
 
 pub struct SaveButtons {
@@ -25,11 +25,11 @@ impl SaveButtons {
         Row::new()
             .push(
                 Button::new(&mut self.save, Text::new("Save"))
-                    .on_press(Message::FileOp(FileOp::Save))
+                    .on_press(Message::FileOp(FileOp::Save)),
             )
             .push(
                 Button::new(&mut self.load, Text::new("Load"))
-                    .on_press(Message::FileOp(FileOp::Load))
+                    .on_press(Message::FileOp(FileOp::Load)),
             )
             .into()
     }
@@ -61,6 +61,8 @@ impl SaveButtons {
             Some((&["*.sudoku"], "Sudoku! Files")),
         ) {
             self.load_from_path(file_path)
-        } else {None}
+        } else {
+            None
+        }
     }
 }

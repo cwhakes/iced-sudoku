@@ -1,9 +1,9 @@
-use crate::Message;
-use crate::sudoku::{Cell, Sudoku};
 use crate::style;
+use crate::sudoku::{Cell, Sudoku};
+use crate::Message;
 
-use iced::{Column, Container, Element, Length, Row, Text};
 use iced::text_input::{State, TextInput};
+use iced::{Column, Container, Element, Length, Row, Text};
 
 pub struct SudokuView {
     pub sudoku: Sudoku,
@@ -41,7 +41,8 @@ impl SudokuView {
                         let cell = &self.sudoku[(i, j)];
                         let is_valid = self.sudoku.validate_cell((i, j));
 
-                        minor_row = minor_row.push(element_from_cell((i, j), cell, state, is_valid));
+                        minor_row =
+                            minor_row.push(element_from_cell((i, j), cell, state, is_valid));
                     }
                     subregion = subregion.push(minor_row);
                 }
@@ -54,7 +55,10 @@ impl SudokuView {
 
     pub fn update(&mut self, message: Message) {
         match message {
-            Message::ChangedCell{new_value, cell_index} => {
+            Message::ChangedCell {
+                new_value,
+                cell_index,
+            } => {
                 let max_value = self.sudoku.length_u8();
                 if new_value == "" {
                     self.sudoku[cell_index].set(0)
@@ -70,7 +74,12 @@ impl SudokuView {
     }
 }
 
-fn element_from_cell<'a>(index: (usize, usize), cell: &'a Cell, state: &'a mut State, is_valid: bool) -> Element<'a, Message> {
+fn element_from_cell<'a>(
+    index: (usize, usize),
+    cell: &'a Cell,
+    state: &'a mut State,
+    is_valid: bool,
+) -> Element<'a, Message> {
     let inner: Element<_> = match cell {
         Cell::Fixed(inner) => Text::new(inner.to_string()).into(),
         Cell::Variable(_) => {
@@ -78,15 +87,10 @@ fn element_from_cell<'a>(index: (usize, usize), cell: &'a Cell, state: &'a mut S
                 0 => "".to_string(),
                 num @ _ => num.to_string(),
             };
-            let mut text = TextInput::new(
-                state,
-                "",
-                &value,
-                move |val| Message::ChangedCell {
-                    new_value: val.to_owned(),
-                    cell_index: index,
-                },
-            );
+            let mut text = TextInput::new(state, "", &value, move |val| Message::ChangedCell {
+                new_value: val.to_owned(),
+                cell_index: index,
+            });
             if !is_valid {
                 text = text.style(style::CellInput::new(is_valid));
             }

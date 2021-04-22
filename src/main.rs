@@ -1,15 +1,15 @@
 #![allow(dead_code)]
 #![windows_subsystem = "windows"]
 
-mod style;
 mod save;
+mod style;
 mod sudoku;
 mod sudoku_view;
 
 use save::SaveButtons;
 use sudoku_view::SudokuView;
 
-use iced::{Align, Container, Column, Element, Length, Sandbox, Space, Text};
+use iced::{Align, Column, Container, Element, Length, Sandbox, Space, Text};
 
 use bincode;
 
@@ -23,11 +23,11 @@ struct SudokuApp {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Message {
-    ChangedCell{
+    ChangedCell {
         new_value: String,
         cell_index: (usize, usize),
     },
-    FileOp(FileOp)
+    FileOp(FileOp),
 }
 
 #[derive(Clone, Debug)]
@@ -46,7 +46,7 @@ impl Sandbox for SudokuApp {
         };
         if let Some(path) = std::env::args().skip(1).next() {
             let save_file = app.save_buttons.load_from_path(path).unwrap();
-            app.game.sudoku = bincode::deserialize(&save_file).unwrap(); 
+            app.game.sudoku = bincode::deserialize(&save_file).unwrap();
         }
         app
     }
@@ -58,13 +58,11 @@ impl Sandbox for SudokuApp {
     fn view(&mut self) -> Element<Message> {
         let column = Column::new()
             .align_items(Align::Center)
-            .push(Text::new(TITLE)
-                .size(32)
-            )
+            .push(Text::new(TITLE).size(32))
             .push(Space::with_height(Length::Units(20)))
             .push(self.game.view())
             .push(self.save_buttons.view());
-        
+
         Container::new(column)
             .width(Length::Fill)
             .center_x()

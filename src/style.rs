@@ -2,18 +2,19 @@ use iced::{container, text_input};
 use iced::{Background, Color};
 
 const GOOD_INPUT: text_input::Style = text_input::Style {
-    background: Background::Color(
-        Color::WHITE,
-    ),
+    background: Background::Color(Color::WHITE),
     border_radius: 0.0,
     border_width: 0.0,
     border_color: Color::BLACK,
 };
 
 const BAD_INPUT: text_input::Style = text_input::Style {
-    background: Background::Color(
-        Color { r: 1.0, g: 0.75, b: 0.75, a: 1.0 },
-    ),
+    background: Background::Color(Color {
+        r: 1.0,
+        g: 0.75,
+        b: 0.75,
+        a: 1.0,
+    }),
     border_radius: 0.0,
     border_width: 0.0,
     border_color: Color::BLACK,
@@ -28,9 +29,7 @@ pub struct SubregionBorder;
 
 impl CellInput {
     pub fn new(cell_is_valid: bool) -> CellInput {
-        CellInput {
-            cell_is_valid
-        }
+        CellInput { cell_is_valid }
     }
 
     fn style(&self) -> text_input::Style {
@@ -42,11 +41,21 @@ impl CellInput {
 }
 
 impl text_input::StyleSheet for CellInput {
-    fn active(&self) -> text_input::Style { self.style() }
-    fn focused(&self) -> text_input::Style { self.style() }
-    fn placeholder_color(&self) -> Color { Color::WHITE }
-    fn value_color(&self) -> Color { Color::BLACK }
-    fn selection_color(&self) -> Color { Color::from_rgb8(200, 200, 255) }
+    fn active(&self) -> text_input::Style {
+        self.style()
+    }
+    fn focused(&self) -> text_input::Style {
+        self.style()
+    }
+    fn placeholder_color(&self) -> Color {
+        Color::WHITE
+    }
+    fn value_color(&self) -> Color {
+        Color::BLACK
+    }
+    fn selection_color(&self) -> Color {
+        Color::from_rgb8(200, 200, 255)
+    }
 }
 
 impl container::StyleSheet for CellBorder {

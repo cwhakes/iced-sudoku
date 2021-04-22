@@ -3,24 +3,22 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use rand::prelude::*;
 use rand::thread_rng;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sudoku {
     subregion_columns: u8,
     subregion_rows: u8,
     grid: Vec<Vec<Cell>>,
 }
 
-#[derive(Debug)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Cell {
     Fixed(u8),
     Variable(AtomicU8),
 }
 
-pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item=&'a Cell>) -> bool {
+pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item = &'a Cell>) -> bool {
     let count = iter.map(Cell::read).filter(|i| *i == value).count();
     count <= 1
 }
@@ -33,7 +31,7 @@ impl Sudoku {
         Sudoku {
             subregion_columns,
             subregion_rows,
-            grid
+            grid,
         }
     }
 
@@ -41,7 +39,7 @@ impl Sudoku {
         // Create empty Sudoku
         let sudoku = Sudoku::new(subregion_rows, subregion_columns);
         // Create a vec of all possible to be filled
-        let mut numbers = (1..(sudoku.length_u8()+1)).collect::<Vec<u8>>();
+        let mut numbers = (1..(sudoku.length_u8() + 1)).collect::<Vec<u8>>();
         for (i, row) in sudoku.grid.iter().enumerate() {
             // Shuffle the numbers once per row
             numbers.shuffle(&mut thread_rng());
@@ -72,64 +70,64 @@ impl Sudoku {
     }
 
     pub fn length(&self) -> usize {
-        self.length_u8()  as usize
+        self.length_u8() as usize
     }
 
     pub fn length_u8(&self) -> u8 {
-        self.subregion_columns * self.subregion_rows 
+        self.subregion_columns * self.subregion_rows
     }
 
     pub fn area(&self) -> usize {
         self.length().pow(2)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&'_ Cell> {
+    pub fn iter(&self) -> impl Iterator<Item = &'_ Cell> {
         self.grid.iter().flatten()
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut Cell> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &'_ mut Cell> {
         self.grid.iter_mut().flatten()
     }
 
-    pub fn fixeds_iter(&self) ->  impl Iterator<Item=&'_ Cell> {
-        self.iter().filter(|cell| {
-            match cell {
-                Cell::Fixed(_) => true,
-                Cell::Variable(_) => false,
-            }
+    pub fn fixeds_iter(&self) -> impl Iterator<Item = &'_ Cell> {
+        self.iter().filter(|cell| match cell {
+            Cell::Fixed(_) => true,
+            Cell::Variable(_) => false,
         })
     }
 
-    pub fn variables_iter(&self) -> impl Iterator<Item=&'_ Cell> {
-        self.iter().filter(|cell| {
-            match cell {
-                Cell::Fixed(_) => false,
-                Cell::Variable(_) => true,
-            }
+    pub fn variables_iter(&self) -> impl Iterator<Item = &'_ Cell> {
+        self.iter().filter(|cell| match cell {
+            Cell::Fixed(_) => false,
+            Cell::Variable(_) => true,
         })
     }
 
-    pub fn row(&self, row: usize) -> impl Iterator<Item=&'_ Cell> {
+    pub fn row(&self, row: usize) -> impl Iterator<Item = &'_ Cell> {
         assert!(row < self.length());
         self.grid[row].iter()
     }
 
-    pub fn column(&self, column: usize) -> impl Iterator<Item=&'_ Cell> {
+    pub fn column(&self, column: usize) -> impl Iterator<Item = &'_ Cell> {
         assert!(column < self.length());
         self.grid.iter().flat_map(move |row| row.iter().nth(column))
     }
 
     fn get_subregion_index(&self, index: (usize, usize)) -> usize {
         assert!(index.0 < self.length() && index.1 < self.length());
-        self.subregion_rows() * (index.0/self.subregion_rows()) + (index.1 / self.subregion_columns())
+        self.subregion_rows() * (index.0 / self.subregion_rows())
+            + (index.1 / self.subregion_columns())
     }
 
-    pub fn subregion(&self, subregion: usize) -> impl Iterator<Item=&'_ Cell> {
+    pub fn subregion(&self, subregion: usize) -> impl Iterator<Item = &'_ Cell> {
         assert!(subregion < self.length());
-        self.grid.iter().skip(self.subregion_rows() * (subregion / self.subregion_rows()))
+        self.grid
+            .iter()
+            .skip(self.subregion_rows() * (subregion / self.subregion_rows()))
             .take(self.subregion_rows())
             .flat_map(move |row| {
-                row.iter().skip(self.subregion_columns() * (subregion % self.subregion_rows()))
+                row.iter()
+                    .skip(self.subregion_columns() * (subregion % self.subregion_rows()))
                     .take(self.subregion_columns())
             })
     }
@@ -137,10 +135,10 @@ impl Sudoku {
     pub fn validate_cell(&self, index: (usize, usize)) -> bool {
         assert!(index.0 < self.length() && index.1 < self.length());
         let value = self[index].read();
-        0 == value ||
-        is_valid_subregion(value, self.row(index.0)) &&
-        is_valid_subregion(value, self.column(index.1)) &&
-        is_valid_subregion(value, self.subregion(self.get_subregion_index(index)))
+        0 == value
+            || is_valid_subregion(value, self.row(index.0))
+                && is_valid_subregion(value, self.column(index.1))
+                && is_valid_subregion(value, self.subregion(self.get_subregion_index(index)))
     }
 
     /// Verifies that sudoku has *at least* one solution.
@@ -150,12 +148,14 @@ impl Sudoku {
         sudoku.fix();
         let stack = sudoku.make_solve_stack();
         // If sudoku is complete, there is only 1 solution
-        if 0 == stack.len() {return true;}
-        
+        if 0 == stack.len() {
+            return true;
+        }
+
         // if not zero, there's a solution
         0 != sudoku.solve_inner(&stack, 0)
     }
-    
+
     /// Verifies that sudoku has *exactly* one solution.
     /// TODO: Change algorithm from brute force.
     pub fn has_unique_solution(&self) -> bool {
@@ -164,11 +164,15 @@ impl Sudoku {
         sudoku.iter_mut().for_each(|cell| cell.set(0));
         let stack = sudoku.make_solve_stack();
         // If sudoku is complete, there is only 1 solution
-        if 0 == stack.len() {return true;}
+        if 0 == stack.len() {
+            return true;
+        }
 
         let cursor = sudoku.solve_inner(&stack, 0);
         // If this can't solve, there are no unique solutions
-        if 0 == cursor {return false;}
+        if 0 == cursor {
+            return false;
+        }
 
         // back off from the end
         let cursor = cursor - 1;
@@ -188,13 +192,16 @@ impl Sudoku {
     }
 
     fn make_solve_stack(&self) -> Vec<((usize, usize), &AtomicU8)> {
-        self.iter().enumerate().filter_map(|(index, cell)| {
-            if let Cell::Variable(inner) = cell {
-                Some(((index / self.length(), index % self.length()), inner))
-            } else {
-                None
-            }
-        }).collect()
+        self.iter()
+            .enumerate()
+            .filter_map(|(index, cell)| {
+                if let Cell::Variable(inner) = cell {
+                    Some(((index / self.length(), index % self.length()), inner))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     fn solve_inner(&self, stack: &[((usize, usize), &AtomicU8)], mut cursor: usize) -> usize {
@@ -232,12 +239,14 @@ impl Sudoku {
     pub fn prune(&mut self, num_to_remove: usize) -> &mut Self {
         assert!(self.has_unique_solution());
 
-        let mut indices = self.iter().enumerate().filter_map(|(index, cell)| {
-            match cell {
+        let mut indices = self
+            .iter()
+            .enumerate()
+            .filter_map(|(index, cell)| match cell {
                 Cell::Fixed(_) => Some(index),
                 Cell::Variable(_) => None,
-            }
-        }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         indices.shuffle(&mut thread_rng());
 
@@ -247,7 +256,7 @@ impl Sudoku {
                 let num = self[index].read();
                 self[index] = Cell::Variable(AtomicU8::new(0));
                 if self.has_unique_solution() {
-                    num_removed +=1;
+                    num_removed += 1;
                 } else {
                     self[index] = Cell::Fixed(num);
                 }
@@ -262,7 +271,7 @@ impl Cell {
     pub fn read(&self) -> u8 {
         match self {
             Cell::Fixed(inner) => *inner,
-            Cell::Variable(inner) => inner.load(Ordering::Relaxed)
+            Cell::Variable(inner) => inner.load(Ordering::Relaxed),
         }
     }
 
