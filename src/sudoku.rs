@@ -5,14 +5,16 @@ use rand::prelude::*;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(windows, derive(Serialize, Deserialize))]
 pub struct Sudoku {
 	subregion_columns: u8,
 	subregion_rows: u8,
 	grid: Vec<Vec<Cell>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
+#[cfg_attr(windows, derive(Serialize, Deserialize))]
 pub enum Cell {
 	Fixed(u8),
 	Variable(AtomicU8),

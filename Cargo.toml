@@ -8,5 +8,7 @@ edition = "2018"
 bincode = "1.2.1"
 iced = "0.3"
 rand = "0.7.3"
-serde = { version = "1.0.110", features = ["derive"] }
+serde = { version = "1.0.125", features = ["derive"] }
+
+[target.'cfg(windows)'.dependencies]
 tinyfiledialogs = "3.3.9"

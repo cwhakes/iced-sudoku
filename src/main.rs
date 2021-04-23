@@ -44,6 +44,7 @@ impl Sandbox for SudokuApp {
 			game: SudokuView::new(),
 			save_buttons: SaveButtons::new(),
 		};
+		#[cfg(windows)]
 		if let Some(path) = std::env::args().skip(1).next() {
 			let save_file = app.save_buttons.load_from_path(path).unwrap();
 			app.game.sudoku = bincode::deserialize(&save_file).unwrap();
@@ -74,6 +75,7 @@ impl Sandbox for SudokuApp {
 	fn update(&mut self, message: Message) {
 		self.game.update(message.clone());
 		if let Message::FileOp(op) = message {
+			#[cfg(windows)]
 			match op {
 				FileOp::Load => {
 					if let Some(save_file) = self.save_buttons.load() {

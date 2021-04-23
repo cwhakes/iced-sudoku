@@ -4,7 +4,6 @@ use std::fs;
 
 use iced::button::{Button, State};
 use iced::{Element, Row, Text};
-use tinyfiledialogs::{open_file_dialog, save_file_dialog_with_filter};
 
 pub struct SaveButtons {
 	file_path: Option<String>,
@@ -34,7 +33,27 @@ impl SaveButtons {
 			.into()
 	}
 
+
+}
+
+#[cfg(not(windows))]
+impl SaveButtons {
+	pub fn save(&mut self, save_file: Vec<u8>) {}
+
+	pub fn load_from_path(&mut self, path: String) -> Option<Vec<u8>> {
+		None
+	}
+
+	pub fn load(&mut self) -> Option<Vec<u8>> {
+		None
+	}
+}
+
+#[cfg(windows)]
+impl SaveButtons {
 	pub fn save(&mut self, save_file: Vec<u8>) {
+		use tinyfiledialogs::save_file_dialog_with_filter;
+
 		if self.file_path.is_none() {
 			self.file_path = save_file_dialog_with_filter(
 				"Sudoku! Save File",
@@ -49,12 +68,15 @@ impl SaveButtons {
 	}
 
 	pub fn load_from_path(&mut self, path: String) -> Option<Vec<u8>> {
+
 		let file_contents = fs::read(&path).ok();
 		self.file_path = Some(path);
 		file_contents
 	}
 
 	pub fn load(&mut self) -> Option<Vec<u8>> {
+		use tinyfiledialogs::open_file_dialog;
+
 		if let Some(file_path) = open_file_dialog(
 			"Sudoku! Load File",
 			"",
