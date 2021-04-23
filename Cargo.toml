@@ -3,15 +3,20 @@ name = "sudoku"
 version = "0.1.0"
 authors = ["Will Hakes <info@cwilliamhakes.com>"]
 edition = "2018"
+resolver = "2"
 
 [dependencies]
 bincode = "1.2.1"
 iced = "0.3"
-rand = "0.7.3"
 serde = { version = "1.0.125", features = ["derive"] }
 
 [target.'cfg(windows)'.dependencies]
 tinyfiledialogs = "3.3.9"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rand = "0.8.3"
+
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = "0.3.46"
+rand = {version = "0.8.3", features = ["getrandom"] }
+getrandom = {version = "0.2", features = ["js"]}

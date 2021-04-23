@@ -43,8 +43,22 @@ impl Sudoku {
 		// Create a vec of all possible to be filled
 		let mut numbers = (1..(sudoku.length_u8() + 1)).collect::<Vec<u8>>();
 		for (i, row) in sudoku.grid.iter().enumerate() {
+			
+
+			#[cfg(target_arch = "wasm32")]
+			{
+				web_sys::console::log_1(&"here and".into());
+			}
+
 			// Shuffle the numbers once per row
 			numbers.shuffle(&mut thread_rng());
+
+			
+		#[cfg(target_arch = "wasm32")]
+		{
+			web_sys::console::log_1(&"not here".into());
+		}
+
 			'cells: for (j, cell) in row.iter().enumerate() {
 				for number in numbers.iter() {
 					cell.set(*number);
