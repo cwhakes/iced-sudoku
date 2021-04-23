@@ -92,5 +92,10 @@ impl Sandbox for SudokuApp {
 }
 
 fn main() {
+	#[cfg(target_arch = "wasm32")]
+	{
+		web_sys::console::log_1(&"Starting Sudoku...".into());
+	}
+
 	SudokuApp::run(Default::default()).unwrap();
 }
