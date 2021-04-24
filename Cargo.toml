@@ -10,11 +10,9 @@ bincode = "1.2.1"
 iced = "0.3"
 serde = { version = "1.0.125", features = ["derive"] }
 
-[target.'cfg(windows)'.dependencies]
-tinyfiledialogs = "3.3.9"
-
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rand = "0.8.3"
+tinyfiledialogs = "3.3.9"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = "0.3.46"

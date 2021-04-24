@@ -36,7 +36,7 @@ impl SaveButtons {
 
 }
 
-#[cfg(not(windows))]
+#[cfg(target_arch = "wasm32")]
 impl SaveButtons {
 	pub fn save(&mut self, save_file: Vec<u8>) {}
 
@@ -49,7 +49,7 @@ impl SaveButtons {
 	}
 }
 
-#[cfg(windows)]
+#[cfg(not(target_arch = "wasm32"))]
 impl SaveButtons {
 	pub fn save(&mut self, save_file: Vec<u8>) {
 		use tinyfiledialogs::save_file_dialog_with_filter;

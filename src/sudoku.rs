@@ -6,7 +6,7 @@ use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug)]
-#[cfg_attr(windows, derive(Serialize, Deserialize))]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Serialize, Deserialize))]
 pub struct Sudoku {
 	subregion_columns: u8,
 	subregion_rows: u8,
@@ -14,7 +14,7 @@ pub struct Sudoku {
 }
 
 #[derive(Debug)]
-#[cfg_attr(windows, derive(Serialize, Deserialize))]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Serialize, Deserialize))]
 pub enum Cell {
 	Fixed(u8),
 	Variable(AtomicU8),
