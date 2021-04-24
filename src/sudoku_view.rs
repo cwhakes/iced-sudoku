@@ -17,7 +17,7 @@ impl SudokuView {
 		sudoku.fix().prune(50);
 		let state_len = sudoku.area();
 		SudokuView {
-			sudoku: sudoku,
+			sudoku,
 			states: vec![State::new(); state_len],
 		}
 	}
@@ -60,7 +60,7 @@ impl SudokuView {
 				cell_index,
 			} => {
 				let max_value = self.sudoku.length_u8();
-				if new_value == "" {
+				if new_value.is_empty() {
 					self.sudoku[cell_index].set(0)
 				// Set the value if value successfully parses to u8 between 1 and 9
 				} else if let Ok(val) = new_value.parse() {
@@ -85,10 +85,10 @@ fn element_from_cell<'a>(
 		Cell::Variable(_) => {
 			let value = match cell.read() {
 				0 => "".to_string(),
-				num @ _ => num.to_string(),
+				num => num.to_string(),
 			};
 			let mut text = TextInput::new(state, "", &value, move |val| Message::ChangedCell {
-				new_value: val.to_owned(),
+				new_value: val,
 				cell_index: index,
 			});
 			if !is_valid {

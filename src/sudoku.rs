@@ -112,7 +112,7 @@ impl Sudoku {
 
 	pub fn column(&self, column: usize) -> impl Iterator<Item = &'_ Cell> {
 		assert!(column < self.length());
-		self.grid.iter().flat_map(move |row| row.iter().nth(column))
+		self.grid.iter().flat_map(move |row| row.get(column))
 	}
 
 	fn get_subregion_index(&self, index: (usize, usize)) -> usize {
@@ -150,7 +150,7 @@ impl Sudoku {
 		sudoku.fix();
 		let stack = sudoku.make_solve_stack();
 		// If sudoku is complete, there is only 1 solution
-		if 0 == stack.len() {
+		if stack.is_empty() {
 			return true;
 		}
 
@@ -166,7 +166,7 @@ impl Sudoku {
 		sudoku.iter_mut().for_each(|cell| cell.set(0));
 		let stack = sudoku.make_solve_stack();
 		// If sudoku is complete, there is only 1 solution
-		if 0 == stack.len() {
+		if stack.is_empty() {
 			return true;
 		}
 

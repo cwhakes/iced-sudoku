@@ -11,9 +11,7 @@ use sudoku_view::SudokuView;
 
 use iced::{Align, Column, Container, Element, Length, Sandbox, Space, Text};
 
-use bincode;
-
-const TITLE: &'static str = "SUDOKU!";
+const TITLE: &str = "SUDOKU!";
 
 struct SudokuApp {
 	game: SudokuView,
@@ -45,7 +43,7 @@ impl Sandbox for SudokuApp {
 			save_buttons: SaveButtons::new(),
 		};
 		#[cfg(not(target_arch = "wasm32"))]
-		if let Some(path) = std::env::args().skip(1).next() {
+		if let Some(path) = std::env::args().nth(1) {
 			let save_file = app.save_buttons.load_from_path(path).unwrap();
 			app.game.sudoku = bincode::deserialize(&save_file).unwrap();
 		}

@@ -32,8 +32,6 @@ impl SaveButtons {
 			)
 			.into()
 	}
-
-
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -68,7 +66,6 @@ impl SaveButtons {
 	}
 
 	pub fn load_from_path(&mut self, path: String) -> Option<Vec<u8>> {
-
 		let file_contents = fs::read(&path).ok();
 		self.file_path = Some(path);
 		file_contents
