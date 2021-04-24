@@ -83,14 +83,11 @@ fn element_from_cell<'a>(
 	let inner: Element<_> = match cell {
 		Cell::Fixed(inner) => Text::new(inner.to_string()).into(),
 		Cell::Variable(_) => {
-			let value = match cell.read() {
-				0 => "".to_string(),
-				num => num.to_string(),
-			};
-			let mut text = TextInput::new(state, "", &value, move |val| Message::ChangedCell {
-				new_value: val,
-				cell_index: index,
-			});
+			let mut text =
+				TextInput::new(state, "", &cell.text(), move |val| Message::ChangedCell {
+					new_value: val,
+					cell_index: index,
+				});
 			if !is_valid {
 				text = text.style(style::CellInput::new(is_valid));
 			}

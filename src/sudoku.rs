@@ -277,6 +277,13 @@ impl Cell {
 		}
 	}
 
+	pub fn text(&self) -> std::borrow::Cow<'static, str> {
+		match self.read() {
+			0 => "".into(),
+			num => num.to_string().into(),
+		}
+	}
+
 	pub fn set(&self, new_value: u8) {
 		if let Cell::Variable(inner) = self {
 			inner.store(new_value, Ordering::Relaxed)
