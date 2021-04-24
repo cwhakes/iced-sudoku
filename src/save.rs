@@ -7,6 +7,7 @@ use iced::{Element, Row, Text};
 
 pub struct SaveButtons {
 	file_path: Option<String>,
+	new: State,
 	save: State,
 	load: State,
 }
@@ -15,6 +16,7 @@ impl SaveButtons {
 	pub fn new() -> SaveButtons {
 		SaveButtons {
 			file_path: None,
+			new: State::new(),
 			save: State::new(),
 			load: State::new(),
 		}
@@ -22,6 +24,7 @@ impl SaveButtons {
 
 	pub fn view(&mut self) -> Element<Message> {
 		Row::new()
+			.push(Button::new(&mut self.new, Text::new("New")).on_press(Message::Regenerate))
 			.push(
 				Button::new(&mut self.save, Text::new("Save"))
 					.on_press(Message::FileOp(FileOp::Save)),
@@ -49,6 +52,10 @@ impl SaveButtons {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl SaveButtons {
+	pub fn reset(&mut self) {
+		self.file_path = None;
+	}
+
 	pub fn save(&mut self, save_file: Vec<u8>) {
 		use tinyfiledialogs::save_file_dialog_with_filter;
 

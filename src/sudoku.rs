@@ -26,7 +26,7 @@ pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item = &'a Cell>) -
 }
 
 impl Sudoku {
-	fn new(subregion_rows: u8, subregion_columns: u8) -> Sudoku {
+	fn new(subregion_rows: u8, subregion_columns: u8) -> Self {
 		let length = subregion_rows as usize * subregion_columns as usize;
 		assert!(length <= u8::MAX as usize);
 		let grid = vec![vec![Cell::default(); length]; length];
@@ -37,7 +37,7 @@ impl Sudoku {
 		}
 	}
 
-	pub fn generate(subregion_rows: u8, subregion_columns: u8) -> Sudoku {
+	pub fn generate_solved(subregion_rows: u8, subregion_columns: u8) -> Self {
 		// Create empty Sudoku
 		let sudoku = Sudoku::new(subregion_rows, subregion_columns);
 		// Create a vec of all possible to be filled
@@ -60,6 +60,13 @@ impl Sudoku {
 				unreachable!();
 			}
 		}
+		sudoku
+	}
+
+	pub fn generate_unsolved(subregion_rows: u8, subregion_columns: u8, prune: usize) -> Self {
+		let mut sudoku = Sudoku::generate_solved(subregion_rows, subregion_columns);
+		//sudoku.solve().fix().prune().solve();
+		sudoku.fix().prune(prune);
 		sudoku
 	}
 
@@ -365,8 +372,7 @@ mod test {
 
 	#[test]
 	fn tiny() {
-		let mut sudoku = Sudoku::generate(1, 2);
-		sudoku.fix().prune(50);
+		let sudoku = Sudoku::generate_unsolved(1, 2, 50);
 		assert_eq!(1, sudoku.fixeds_iter().count());
 		assert_eq!(3, sudoku.variables_iter().count());
 	}

@@ -11,12 +11,13 @@ pub struct SudokuView {
 }
 
 impl SudokuView {
-	pub fn new() -> SudokuView {
-		let mut sudoku = Sudoku::generate(3, 3);
-		//sudoku.solve().fix().prune().solve();
-		sudoku.fix().prune(50);
+	pub fn new() -> Self {
+		Self::new_from(Sudoku::generate_unsolved(3, 3, 50))
+	}
+
+	pub fn new_from(sudoku: Sudoku) -> Self {
 		let state_len = sudoku.area();
-		SudokuView {
+		Self {
 			sudoku,
 			states: vec![State::new(); state_len],
 		}
@@ -54,22 +55,20 @@ impl SudokuView {
 	}
 
 	pub fn update(&mut self, message: Message) {
-		match message {
-			Message::ChangedCell {
-				new_value,
-				cell_index,
-			} => {
-				let max_value = self.sudoku.length_u8();
-				if new_value.is_empty() {
-					self.sudoku[cell_index].set(0)
-				// Set the value if value successfully parses to u8 between 1 and 9
-				} else if let Ok(val) = new_value.parse() {
-					if 1 <= val && val <= max_value {
-						self.sudoku[cell_index].set(val);
-					}
+		if let Message::ChangedCell {
+			new_value,
+			cell_index,
+		} = message
+		{
+			let max_value = self.sudoku.length_u8();
+			if new_value.is_empty() {
+				self.sudoku[cell_index].set(0)
+			// Set the value if value successfully parses to u8 between 1 and 9
+			} else if let Ok(val) = new_value.parse() {
+				if 1 <= val && val <= max_value {
+					self.sudoku[cell_index].set(val);
 				}
 			}
-			_ => {}
 		}
 	}
 }

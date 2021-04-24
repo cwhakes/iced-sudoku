@@ -26,6 +26,7 @@ pub enum Message {
 		cell_index: (usize, usize),
 	},
 	FileOp(FileOp),
+	Regenerate,
 }
 
 #[derive(Clone, Debug)]
@@ -72,19 +73,28 @@ impl Sandbox for SudokuApp {
 
 	fn update(&mut self, message: Message) {
 		self.game.update(message.clone());
-		if let Message::FileOp(op) = message {
-			#[cfg(not(target_arch = "wasm32"))]
-			match op {
-				FileOp::Load => {
-					if let Some(save_file) = self.save_buttons.load() {
-						self.game.sudoku = bincode::deserialize(&save_file).unwrap();
+		match message {
+			Message::FileOp(op) =>
+			{
+				#[cfg(not(target_arch = "wasm32"))]
+				match op {
+					FileOp::Load => {
+						if let Some(save_file) = self.save_buttons.load() {
+							self.game =
+								SudokuView::new_from(bincode::deserialize(&save_file).unwrap());
+						}
+					}
+					FileOp::Save => {
+						let save_file = bincode::serialize(&self.game.sudoku).unwrap();
+						self.save_buttons.save(save_file)
 					}
 				}
-				FileOp::Save => {
-					let save_file = bincode::serialize(&self.game.sudoku).unwrap();
-					self.save_buttons.save(save_file)
-				}
 			}
+			Message::Regenerate => {
+				self.save_buttons.reset();
+				self.game = SudokuView::new();
+			}
+			_ => {}
 		}
 	}
 }
