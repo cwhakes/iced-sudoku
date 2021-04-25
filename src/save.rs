@@ -39,9 +39,13 @@ impl SaveButtons {
 
 #[cfg(target_arch = "wasm32")]
 impl SaveButtons {
-	pub fn save(&mut self, save_file: Vec<u8>) {}
+	pub fn reset(&mut self) {
+		self.file_path = None;
+	}
 
-	pub fn load_from_path(&mut self, path: String) -> Option<Vec<u8>> {
+	pub fn save(&mut self, _save_file: Vec<u8>) {}
+
+	pub fn load_from_path(&mut self, _path: String) -> Option<Vec<u8>> {
 		None
 	}
 
