@@ -41,7 +41,7 @@ impl Sudoku {
 		// Create empty Sudoku
 		let sudoku = Sudoku::new(subregion_rows, subregion_columns);
 		// Create a vec of all possible to be filled
-		let mut numbers = (1..(sudoku.length_u8() + 1)).collect::<Vec<u8>>();
+		let mut numbers = (1..=sudoku.length_u8()).collect::<Vec<u8>>();
 		for (i, row) in sudoku.grid.iter().enumerate() {
 			// Shuffle the numbers once per row
 			numbers.shuffle(&mut thread_rng());

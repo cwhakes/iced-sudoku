@@ -3,8 +3,8 @@ use iced::{Background, Color};
 
 const GOOD_INPUT: text_input::Style = text_input::Style {
 	background: Background::Color(Color::WHITE),
-	border_radius: 0.0,
-	border_width: 0.0,
+	border_radius: 4.0,
+	border_width: 0.5,
 	border_color: Color::BLACK,
 };
 
@@ -15,8 +15,8 @@ const BAD_INPUT: text_input::Style = text_input::Style {
 		b: 0.75,
 		a: 1.0,
 	}),
-	border_radius: 0.0,
-	border_width: 0.0,
+	border_radius: 4.0,
+	border_width: 0.5,
 	border_color: Color::BLACK,
 };
 

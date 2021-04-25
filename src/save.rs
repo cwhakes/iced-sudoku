@@ -81,14 +81,10 @@ impl SaveButtons {
 	pub fn load(&mut self) -> Option<Vec<u8>> {
 		use tinyfiledialogs::open_file_dialog;
 
-		if let Some(file_path) = open_file_dialog(
+		open_file_dialog(
 			"Sudoku! Load File",
 			"",
 			Some((&["*.sudoku"], "Sudoku! Files")),
-		) {
-			self.load_from_path(file_path)
-		} else {
-			None
-		}
+		).and_then(|file_path| self.load_from_path(file_path))
 	}
 }
