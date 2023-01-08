@@ -2,37 +2,23 @@ use crate::{FileOp, Message};
 
 use std::fs;
 
-use iced::button::{Button, State};
-use iced::{Element, Row, Text};
+use iced::widget::{Button, Row, Text};
+use iced::Element;
 
 pub struct SaveButtons {
 	file_path: Option<String>,
-	new: State,
-	save: State,
-	load: State,
 }
 
 impl SaveButtons {
-	pub fn new() -> SaveButtons {
-		SaveButtons {
-			file_path: None,
-			new: State::new(),
-			save: State::new(),
-			load: State::new(),
-		}
+	pub fn new() -> Self {
+		Self { file_path: None }
 	}
 
-	pub fn view(&mut self) -> Element<Message> {
+	pub fn view(&self) -> Element<Message> {
 		Row::new()
-			.push(Button::new(&mut self.new, Text::new("New")).on_press(Message::Regenerate))
-			.push(
-				Button::new(&mut self.save, Text::new("Save"))
-					.on_press(Message::FileOp(FileOp::Save)),
-			)
-			.push(
-				Button::new(&mut self.load, Text::new("Load"))
-					.on_press(Message::FileOp(FileOp::Load)),
-			)
+			.push(Button::new(Text::new("New")).on_press(Message::Regenerate))
+			.push(Button::new(Text::new("Save")).on_press(Message::FileOp(FileOp::Save)))
+			.push(Button::new(Text::new("Load")).on_press(Message::FileOp(FileOp::Load)))
 			.into()
 	}
 }
@@ -69,7 +55,7 @@ impl SaveButtons {
 				"save_file1.sudoku",
 				&["*.sudoku"],
 				"Sudoku! Files",
-			)
+			);
 		}
 		if let Some(save_file_path) = &self.file_path {
 			fs::write(save_file_path, save_file).unwrap();
@@ -89,6 +75,7 @@ impl SaveButtons {
 			"Sudoku! Load File",
 			"",
 			Some((&["*.sudoku"], "Sudoku! Files")),
-		).and_then(|file_path| self.load_from_path(file_path))
+		)
+		.and_then(|file_path| self.load_from_path(file_path))
 	}
 }

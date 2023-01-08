@@ -28,9 +28,9 @@ pub fn is_valid_subregion<'a>(value: u8, iter: impl Iterator<Item = &'a Cell>) -
 impl Sudoku {
 	fn new(subregion_rows: u8, subregion_columns: u8) -> Self {
 		let length = subregion_rows as usize * subregion_columns as usize;
-		assert!(length <= u8::MAX as usize);
+		assert!(u8::try_from(length).is_ok());
 		let grid = vec![vec![Cell::default(); length]; length];
-		Sudoku {
+		Self {
 			subregion_columns,
 			subregion_rows,
 			grid,
@@ -39,15 +39,15 @@ impl Sudoku {
 
 	pub fn generate_solved(subregion_rows: u8, subregion_columns: u8) -> Self {
 		// Create empty Sudoku
-		let sudoku = Sudoku::new(subregion_rows, subregion_columns);
+		let sudoku = Self::new(subregion_rows, subregion_columns);
 		// Create a vec of all possible to be filled
 		let mut numbers = (1..=sudoku.length_u8()).collect::<Vec<u8>>();
 		for (i, row) in sudoku.grid.iter().enumerate() {
 			// Shuffle the numbers once per row
 			numbers.shuffle(&mut thread_rng());
 			'cells: for (j, cell) in row.iter().enumerate() {
-				for number in numbers.iter() {
-					cell.set(*number);
+				for &number in &numbers {
+					cell.set(number);
 					// Fast fail validation
 					if sudoku.validate_cell((i, j)) {
 						// Be sure we can still solve the puzzle
@@ -64,7 +64,7 @@ impl Sudoku {
 	}
 
 	pub fn generate_unsolved(subregion_rows: u8, subregion_columns: u8, prune: usize) -> Self {
-		let mut sudoku = Sudoku::generate_solved(subregion_rows, subregion_columns);
+		let mut sudoku = Self::generate_solved(subregion_rows, subregion_columns);
 		//sudoku.solve().fix().prune().solve();
 		sudoku.fix().prune(prune);
 		sudoku
@@ -119,7 +119,7 @@ impl Sudoku {
 
 	pub fn column(&self, column: usize) -> impl Iterator<Item = &'_ Cell> {
 		assert!(column < self.length());
-		self.grid.iter().flat_map(move |row| row.get(column))
+		self.grid.iter().filter_map(move |row| row.get(column))
 	}
 
 	fn get_subregion_index(&self, index: (usize, usize)) -> usize {
@@ -279,8 +279,8 @@ impl Sudoku {
 impl Cell {
 	pub fn read(&self) -> u8 {
 		match self {
-			Cell::Fixed(inner) => *inner,
-			Cell::Variable(inner) => inner.load(Ordering::Relaxed),
+			Self::Fixed(inner) => *inner,
+			Self::Variable(inner) => inner.load(Ordering::Relaxed),
 		}
 	}
 
@@ -292,15 +292,15 @@ impl Cell {
 	}
 
 	pub fn set(&self, new_value: u8) {
-		if let Cell::Variable(inner) = self {
-			inner.store(new_value, Ordering::Relaxed)
+		if let Self::Variable(inner) = self {
+			inner.store(new_value, Ordering::Relaxed);
 		}
 	}
 }
 
 impl Default for Sudoku {
-	fn default() -> Sudoku {
-		Sudoku::new(3, 3)
+	fn default() -> Self {
+		Self::new(3, 3)
 	}
 }
 
@@ -340,18 +340,18 @@ impl ops::IndexMut<(usize, usize)> for Sudoku {
 impl Clone for Cell {
 	fn clone(&self) -> Self {
 		match self {
-			Cell::Fixed(inner) => Cell::Fixed(*inner),
-			Cell::Variable(inner) => {
+			Self::Fixed(inner) => Self::Fixed(*inner),
+			Self::Variable(inner) => {
 				let num = inner.load(Ordering::Relaxed);
-				Cell::Variable(AtomicU8::new(num))
-			}
+				Self::Variable(AtomicU8::new(num))
+			},
 		}
 	}
 }
 
 impl Default for Cell {
 	fn default() -> Self {
-		Cell::Variable(AtomicU8::new(0))
+		Self::Variable(AtomicU8::new(0))
 	}
 }
 

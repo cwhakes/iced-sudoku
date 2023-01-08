@@ -2,12 +2,11 @@ use crate::style;
 use crate::sudoku::{Cell, Sudoku};
 use crate::Message;
 
-use iced::text_input::{State, TextInput};
-use iced::{Column, Container, Element, Length, Row, Text};
+use iced::widget::{Column, Container, Row, Text, TextInput};
+use iced::{theme, Element, Length};
 
 pub struct SudokuView {
 	pub sudoku: Sudoku,
-	states: Vec<State>,
 }
 
 impl SudokuView {
@@ -16,19 +15,13 @@ impl SudokuView {
 	}
 
 	pub fn new_from(sudoku: Sudoku) -> Self {
-		let state_len = sudoku.area();
-		Self {
-			sudoku,
-			states: vec![State::new(); state_len],
-		}
+		Self { sudoku }
 	}
 
-	pub fn view(&mut self) -> Element<Message> {
+	pub fn view(&self) -> Element<Message> {
 		let subregion_columns = self.sudoku.subregion_columns();
 		let subregion_rows = self.sudoku.subregion_rows();
-		//Text::new(self.text).size(50).into()
 		let mut grid = Column::new();
-		let mut states = self.states.iter_mut();
 		for major_i in 0..subregion_columns {
 			let mut major_row = Row::new();
 			for major_j in 0..subregion_rows {
@@ -38,16 +31,17 @@ impl SudokuView {
 					for minor_j in 0..subregion_columns {
 						let i = major_i * subregion_rows + minor_i;
 						let j = major_j * subregion_columns + minor_j;
-						let state = states.next().unwrap();
 						let cell = &self.sudoku[(i, j)];
 						let is_valid = self.sudoku.validate_cell((i, j));
 
-						minor_row =
-							minor_row.push(element_from_cell((i, j), cell, state, is_valid));
+						minor_row = minor_row.push(element_from_cell((i, j), cell, is_valid));
 					}
 					subregion = subregion.push(minor_row);
 				}
-				major_row = major_row.push(Container::new(subregion).style(style::SubregionBorder));
+				major_row = major_row.push(
+					Container::new(subregion)
+						.style(theme::Container::Custom(Box::new(style::SubregionBorder))),
+				);
 			}
 			grid = grid.push(major_row);
 		}
@@ -62,7 +56,7 @@ impl SudokuView {
 		{
 			let max_value = self.sudoku.length_u8();
 			if new_value.is_empty() {
-				self.sudoku[cell_index].set(0)
+				self.sudoku[cell_index].set(0);
 			// Set the value if value successfully parses to u8 between 1 and 9
 			} else if let Ok(val) = new_value.parse() {
 				if 1 <= val && val <= max_value {
@@ -73,23 +67,25 @@ impl SudokuView {
 	}
 }
 
-fn element_from_cell<'a>(
-	index: (usize, usize),
-	cell: &'a Cell,
-	state: &'a mut State,
-	is_valid: bool,
-) -> Element<'a, Message> {
+fn element_from_cell(index: (usize, usize), cell: &Cell, is_valid: bool) -> Element<Message> {
 	let inner: Element<_> = match cell {
 		Cell::Fixed(inner) => Text::new(inner.to_string()).into(),
 		Cell::Variable(_) => {
-				TextInput::new(state, "", &cell.text(), move |val| Message::ChangedCell {
+			TextInput::new(
+				/*state, */ "",
+				&cell.text(),
+				move |val| Message::ChangedCell {
 					new_value: val,
 					cell_index: index,
-				})
-				.style(style::CellInput::new(is_valid))
-				.width(Length::Units(20))
-				.into()
-		}
+				},
+			)
+			.style(theme::TextInput::Custom(Box::new(style::CellInput::new(
+				is_valid,
+			))))
+			.padding(3)
+			.width(Length::Units(20))
+			.into()
+		},
 	};
 
 	Container::new(inner)
@@ -97,6 +93,6 @@ fn element_from_cell<'a>(
 		.center_x()
 		.height(Length::Units(32))
 		.center_y()
-		.style(style::CellBorder)
+		.style(theme::Container::Custom(Box::new(style::CellBorder)))
 		.into()
 }

@@ -9,7 +9,8 @@ mod sudoku_view;
 use save::SaveButtons;
 use sudoku_view::SudokuView;
 
-use iced::{Align, Column, Container, Element, Length, Sandbox, Space, Text};
+use iced::widget::{Column, Container, Space, Text};
+use iced::{Alignment, Element, Length, Sandbox};
 
 const TITLE: &str = "SUDOKU!";
 
@@ -38,8 +39,8 @@ pub enum FileOp {
 impl Sandbox for SudokuApp {
 	type Message = Message;
 
-	fn new() -> SudokuApp {
-		let mut app = SudokuApp {
+	fn new() -> Self {
+		let mut app = Self {
 			game: SudokuView::new(),
 			save_buttons: SaveButtons::new(),
 		};
@@ -55,9 +56,9 @@ impl Sandbox for SudokuApp {
 		TITLE.to_string()
 	}
 
-	fn view(&mut self) -> Element<Message> {
+	fn view(&self) -> Element<Message> {
 		let column = Column::new()
-			.align_items(Align::Center)
+			.align_items(Alignment::Center)
 			.push(Text::new(TITLE).size(32))
 			.push(Space::with_height(Length::Units(20)))
 			.push(self.game.view())
@@ -83,18 +84,18 @@ impl Sandbox for SudokuApp {
 							self.game =
 								SudokuView::new_from(bincode::deserialize(&save_file).unwrap());
 						}
-					}
+					},
 					FileOp::Save => {
 						let save_file = bincode::serialize(&self.game.sudoku).unwrap();
-						self.save_buttons.save(save_file)
-					}
+						self.save_buttons.save(save_file);
+					},
 				}
-			}
+			},
 			Message::Regenerate => {
 				self.save_buttons.reset();
 				self.game = SudokuView::new();
-			}
-			_ => {}
+			},
+			_ => {},
 		}
 	}
 }
